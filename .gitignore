@@ -1,0 +1,13 @@
+# Ignore data files
+model_movies_data/*
+
+
+# Ignore temporary files
+*.tmp
+*.log
+
+# Ignore Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+ 
