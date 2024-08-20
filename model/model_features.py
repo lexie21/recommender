@@ -7,14 +7,21 @@ import pickle
 from ast import literal_eval
 from sklearn.feature_extraction.text import TfidfVectorizer
 
+# 'C:\Users\MrLinh\Downloads\movie_reccommender\model'
+# ENV = os.getenv("MOVIE_REC","movie_recommender")
+BASE_PATH = "C:/Users/MrLinh/Downloads/movie_reccommender/model"
+# BASE_PATH = os.getenv("","/movies_data") # fill in gcp server info
+# GS_BUCKET = os.getenv("","") # fill in gcp bucket info
 
-ENV = os.getenv("MOVIE_REC","movie_recommender")
-BASE_PATH = os.getenv("","/") # fill in gcp server info
-GS_BUCKET = os.getenv("","") # fill in gcp bucket info
-PATH_TO_IMDB = f""
+PATH_TO_IMDB = f"{BASE_PATH}\movies_data\imdb_folder"
+PATH_TO_IMDB_MOVIE = f"{PATH_TO_IMDB}\movies_metadata.csv"
+PATH_TO_KEYWORDS = f"{PATH_TO_IMDB}\keywords.csv"
+PATH_TO_RATING = f"{PATH_TO_IMDB}\ratings_small.csv"
+
 PATH_TO_MLENS = f""
-PATH_TO_FEATURE_STORE = f""
-PATH_TO_ENCODER = f""
+
+PATH_TO_FEATURE_STORE = f"{BASE_PATH}\feature_store.csv"
+PATH_TO_VECTORIZED_TEXT = f"{BASE_PATH}\vectorized_text.pickle"
 
 def data_path(movie_db): # reconsider
     if movie_db == "imdb":
@@ -23,8 +30,8 @@ def data_path(movie_db): # reconsider
         return PATH_TO_MLENS
     
 
-def read_data() -> pd.DataFrame:
-    data_path = data_path() # call on both datasets
+def read_data(movie_db) -> pd.DataFrame:
+    data_path = data_path(movie_db) # call on both datasets
     data = pd.read_csv(data_path) 
     return data
 
@@ -68,12 +75,15 @@ def run_processing_pipeline(
         .vectorizer()
     )
 
-if __name__ == "__main__":
-    movie_data = read_data()
-    intermediate = run_processing_pipeline(movie_data)
-    feature_store = intermediate.qualified_df
-    tfdif_matrix = intermediate.tfidf_matrix
-    feature_store.to_csv(PATH_TO_FEATURE_STORE)
-    with open(PATH_TO_ENCODER, "wb") as file:
-        pickle.dump(tfdif_matrix, file)
+print("done")
+# if __name__ == "__main__":
+
+#     for db in ["imdb"]:
+#         movie_data = read_data(db)
+#         intermediate = run_processing_pipeline(movie_data)
+#         feature_store = intermediate.qualified_df
+#         tfdif_matrix = intermediate.tfidf_matrix
+#         feature_store.to_csv(PATH_TO_FEATURE_STORE) # f string here to differentiate the 2
+#         with open(PATH_TO_VECTORIZED_TEXT, "wb") as file: # here also
+#             pickle.dump(tfdif_matrix, file)
 
