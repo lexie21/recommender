@@ -1,11 +1,7 @@
-import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import pickle 
-
 from ast import literal_eval
-from sklearn.feature_extraction.text import TfidfVectorizer
 
 # 'C:\Users\MrLinh\Downloads\movie_reccommender\model'
 # ENV = os.getenv("MOVIE_REC","movie_recommender")
@@ -16,6 +12,8 @@ BASE_PATH = "C:/Users/MrLinh/Downloads/movie_reccommender/model"
 PATH_TO_IMDB = f"{BASE_PATH}/movies_data/imdb_folder"
 PATH_TO_IMDB_MOVIE = f"{PATH_TO_IMDB}/movies_metadata.csv"
 PATH_TO_KEYWORDS = f"{PATH_TO_IMDB}/keywords.csv"
+
+# don't do any text processing here
 PATH_TO_RATING = f"{PATH_TO_IMDB}/ratings_small.csv"
 
 PATH_TO_MLENS = f""
@@ -28,10 +26,13 @@ def read_data(data_path) -> pd.DataFrame:
     return data
 
 class FeatureBuilder:
-    def __init__(self, raw_df: pd.DataFrame, lowtime = 45, hightime = 300):
-        self.raw_df = raw_df[(raw_df["runtime"] >= lowtime) & (raw_df["runtime"] <= hightime)]
+    def __init__(self, raw_df: pd.DataFrame, raw_keywords: pd.DataFrame, lowtime = 45, hightime = 300):
+        # self.raw_df = raw_df[(raw_df["runtime"] >= lowtime) & (raw_df["runtime"] <= hightime)]
+        self.raw_df = raw_df
+        self.raw_df.drop(self.raw_df[self.raw_df["id"].apply(lambda x: '-' in x)].index, inplace=True)
+        self.raw_df["id"] = self.raw_df["id"].astype(int)
+        self.raw_df = pd.merge(self.raw_df, raw_keywords, on="id")
         self.qualified_df = pd.DataFrame() 
-        self.tfidf_matrix = None
 
     def weighted_scores(self, percentile = 0.8): 
         minimum_vote = self.raw_df["vote_count"].quantile(percentile)
@@ -46,17 +47,35 @@ class FeatureBuilder:
         self.qualified_df = qualified_movies
         return self
 
-    def destring(self):
-        self.qualified_df["genres"] = self.qualified_df["genres"].fillna('[]').apply(literal_eval)
-        # self.qualified_df["genres"] = self.qualified_df["genres"]
-        self.qualified_df["genres_list"] = self.qualified_df["genres"].apply(lambda x: [i["name"] for i in x] if isinstance(x,list) else [])
-        self.qualified_df = self.qualified_df.explode("genres_list").drop("genres",axis=1)
-        return self
-    
-    def vectorizer(self): # be careful when call this
-        self.qualified_df["overview"] = self.qualified_df["overview"].fillna('')
-        tfidf = TfidfVectorizer(stop_words="english")
-        self.tfidf_matrix = tfidf.fit_transform(self.qualified_df["overview"])
+    def destring(self, vars):
+        def generate_list(x):
+            if isinstance(x, list):
+                names = [i["name"] for i in x]
+                if len(names) > 3:
+                    names = names[:3]
+                return names
+            return []
+
+        # sanitize data to prevent ambiguity, remove space and convert to lowercase
+        def sanitize(x):
+            if isinstance(x, list):
+                return [str.lower(i.replace(" ", "")) for i in x] 
+            else:
+                if isinstance(x, str):
+                    return str.lower(x.replace(" ", ""))
+                else:
+                    return ''
+        
+        def create_soup(x):
+            return ' '.join(x["keywords"]) + ' '.join(x["genres"])
+                
+        for var in vars:
+            self.qualified_df[var] = self.qualified_df[var].fillna('[]').apply(literal_eval)
+            self.qualified_df[var] = self.qualified_df[var].apply(generate_list)
+            self.qualified_df[var] = self.qualified_df[var].apply(sanitize)
+        
+        self.qualified_df["soup"] = self.qualified_df.apply(create_soup, axis=1) 
+       
         return self
 
 def run_processing_pipeline(
@@ -64,16 +83,18 @@ def run_processing_pipeline(
 ) -> pd.DataFrame:
     return (
         feature_builder.weighted_scores()
-        .destring()
-        .vectorizer()
+        .destring(vars=["keywords", "genres"])
     )
 
 if __name__ == "__main__":
     movie_data = read_data(PATH_TO_IMDB_MOVIE)
-    intermediate = run_processing_pipeline(FeatureBuilder(movie_data))
+    keyword_data = read_data(PATH_TO_KEYWORDS)
+    rating_data = read_data(PATH_TO_RATING)
+    intermediate = run_processing_pipeline(FeatureBuilder(movie_data, keyword_data, rating_data))
+
     feature_store = intermediate.qualified_df
-    tfdif_matrix = intermediate.tfidf_matrix
+    # tfdif_matrix = intermediate.tfidf_matrix
     feature_store.to_csv(PATH_TO_FEATURE_STORE) 
-    with open(PATH_TO_VECTORIZED_TEXT, "wb") as file: 
-        pickle.dump(tfdif_matrix, file)
+    # with open(PATH_TO_VECTORIZED_TEXT, "wb") as file: 
+    #     pickle.dump(tfdif_matrix, file)
 
