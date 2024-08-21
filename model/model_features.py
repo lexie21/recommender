@@ -16,11 +16,6 @@ PATH_TO_IMDB = f"{BASE_PATH}/movies_data/imdb_folder"
 PATH_TO_IMDB_MOVIE = f"{PATH_TO_IMDB}/movies_metadata.csv"
 PATH_TO_KEYWORDS = f"{PATH_TO_IMDB}/keywords.csv"
 
-# don't do any text processing here
-PATH_TO_RATING = f"{PATH_TO_IMDB}/ratings_small.csv"
-
-PATH_TO_MLENS = f""
-
 PATH_TO_FEATURE_STORE = f"{BASE_PATH}/feature_store_new.csv"
 
 def read_data(data_path) -> pd.DataFrame:
@@ -93,8 +88,7 @@ def run_processing_pipeline(
 if __name__ == "__main__":
     movie_data = read_data(PATH_TO_IMDB_MOVIE)
     keyword_data = read_data(PATH_TO_KEYWORDS)
-    rating_data = read_data(PATH_TO_RATING)
-    intermediate = run_processing_pipeline(FeatureBuilder(movie_data, keyword_data, rating_data))
+    intermediate = run_processing_pipeline(FeatureBuilder(movie_data, keyword_data))
 
     feature_store = intermediate.qualified_df
-    feature_store.to_csv(PATH_TO_FEATURE_STORE)
+    feature_store.to_csv(PATH_TO_FEATURE_STORE, index=False)

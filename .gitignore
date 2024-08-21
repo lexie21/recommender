@@ -1,5 +1,5 @@
 # Ignore data files
-model_movies_data/*
+model/movies_data/*
 
 *.pickle
 

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cinephilia</title>
+    <style>
+        .all {
+            text-align: center;
+        }
+
+        .page-title {
+            text-align: center;
+        }
+
+        .container {
+            display: flex;
+            /* Establishes a flex container */
+            flex-wrap: wrap;
+            /* Allows items to wrap to the next line if needed */
+            gap: 20px;
+            /* Space between boxes */
+            padding: 20px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .box {
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            width: 250px;
+            /* Fixed width for the box */
+            height: 400px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .submit-button {
+            background-color: #007bff;
+            /* Blue background */
+            color: #fff;
+            /* White text */
+            border: none;
+            /* Remove default border */
+            border-radius: 4px;
+            /* Rounded corners */
+            padding: 10px 20px;
+            /* Top and bottom padding, left and right padding */
+            font-size: 16px;
+            /* Font size */
+            cursor: pointer;
+            /* Pointer cursor on hover */
+            transition: background-color 0.3s ease;
+            /* Smooth transition for background color */
+        }
+
+        .submit-button:hover {
+            background-color: #0056b3;
+            /* Darker blue on hover */
+        }
+
+        .box img {
+            width: 100%;
+            /* Ensure image width fits the container */
+            height: 100%;
+            /* Ensure image height fits the container */
+            object-fit: fill;
+            /* Cover the container, cropping if necessary */
+        }
+
+        .box input[type="checkbox"] {
+            appearance: none;
+            /* Remove default styling */
+            background-color: #fff;
+            border: 2px solid #007bff;
+            /* Default border color */
+            border-radius: 4px;
+            /* Rounded corners */
+            width: 20px;
+            /* Checkbox size */
+            height: 20px;
+            position: relative;
+            margin-right: 10px;
+            /* Space between checkbox and label */
+            outline: none;
+            cursor: pointer;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        .box input[type="checkbox"]:checked {
+            background-color: #007bff;
+            /* Background color when checked */
+            border-color: #007bff;
+            /* Border color when checked */
+        }
+
+        .box input[type="checkbox"]:checked::after {
+            content: '';
+            position: absolute;
+            left: 5px;
+            top: 50%;
+            width: 6px;
+            height: 12px;
+            border: solid #fff;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+            transform-origin: center center;
+        }
+
+        .styled-paragraph {
+            font-weight: bold;
+            /* Make text bold */
+            font-size: 18px;
+            color: #333;
+            /* Optional: Set text color */
+            margin: 10px 0;
+            /* Optional: Add margin for spacing */
+        }
+
+        /* Optional: Responsive design */
+        @media (max-width: 768px) {
+            .box {
+                width: 100%;
+                /* Full width on smaller screens */
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <h1 class="page-title">What are your favorite movies?</h1>
+
+    <div class="all">
+        <form action="/recommend" method="post">
+            <div class="container">
+
+                {% for id, title, url in tuples%}
+                <div class="holder">
+                    <div class="box">
+
+                        <img src="https://image.tmdb.org/t/p/original{{url}}" class="non-clickable-image">
+                        <input type="checkbox" name="movies_id" value="{{id}}">
+                    </div>
+                    <p class="styled-paragraph">{{title}}</p>
+                </div>
+                {% endfor %}
+
+            </div>
+            <button type="submit" class="submit-button">Submit</button>
+    </div>
+    </form>
+
+    </div>
+</body>
+
+</html>
