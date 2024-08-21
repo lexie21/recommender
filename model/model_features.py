@@ -3,6 +3,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from ast import literal_eval
 
+"""
+Resolve git
+"""
 # 'C:\Users\MrLinh\Downloads\movie_reccommender\model'
 # ENV = os.getenv("MOVIE_REC","movie_recommender")
 BASE_PATH = "C:/Users/MrLinh/Downloads/movie_reccommender/model"
@@ -18,8 +21,7 @@ PATH_TO_RATING = f"{PATH_TO_IMDB}/ratings_small.csv"
 
 PATH_TO_MLENS = f""
 
-PATH_TO_FEATURE_STORE = f"{BASE_PATH}/feature_store.csv"
-PATH_TO_VECTORIZED_TEXT = f"{BASE_PATH}/vectorized_text.pickle"
+PATH_TO_FEATURE_STORE = f"{BASE_PATH}/feature_store_new.csv"
 
 def read_data(data_path) -> pd.DataFrame:
     data = pd.read_csv(data_path)
@@ -31,6 +33,8 @@ class FeatureBuilder:
         self.raw_df = raw_df
         self.raw_df.drop(self.raw_df[self.raw_df["id"].apply(lambda x: '-' in x)].index, inplace=True)
         self.raw_df["id"] = self.raw_df["id"].astype(int)
+        self.raw_df["overview"].fillna('',inplace=True)
+        self.raw_df["overview"] = self.raw_df["overview"].apply(lambda x: str.lower(x[:316]) if (len(x) > 316) else str.lower(x))
         self.raw_df = pd.merge(self.raw_df, raw_keywords, on="id")
         self.qualified_df = pd.DataFrame() 
 
@@ -93,8 +97,4 @@ if __name__ == "__main__":
     intermediate = run_processing_pipeline(FeatureBuilder(movie_data, keyword_data, rating_data))
 
     feature_store = intermediate.qualified_df
-    # tfdif_matrix = intermediate.tfidf_matrix
-    feature_store.to_csv(PATH_TO_FEATURE_STORE) 
-    # with open(PATH_TO_VECTORIZED_TEXT, "wb") as file: 
-    #     pickle.dump(tfdif_matrix, file)
-
+    feature_store.to_csv(PATH_TO_FEATURE_STORE)
