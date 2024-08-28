@@ -33,16 +33,17 @@ def _get_similarity_matrix():
 @app.route("/",methods=["GET"])
 def index():
     idx = random.sample(range(FEATURE_STORE.shape[0]),4)
-    ids = FEATURE_STORE.iloc[idx]["id"]
-    titles = FEATURE_STORE.iloc[idx]["title"]
-    urls = FEATURE_STORE.iloc[idx]["poster_path"]
+    cached_df = FEATURE_STORE.iloc[idx][["id","title","poster_path"]]
+    """Modify this when call external db"""
+    ids = cached_df["id"]
+    titles = cached_df["title"]
+    urls = cached_df["poster_path"]
     tuples = zip(ids, titles, urls)
     return render_template("index.html", tuples = tuples)
 
 @app.route("/recommend",methods=["POST"])
 def recommend(): 
     movie_ids = [int(id) for id in request.form.getlist('movies_id')]
-    print(movie_ids)
     def genres_extract():
         genres_list = []
         for id in movie_ids:
