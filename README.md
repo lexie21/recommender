@@ -1,0 +1,1 @@
+Mostly instance-based movie recommender with weighted scoring between text and numerical categories. Attempted genre prediction based on overview text but not quite successful due to class imbalance problem.
